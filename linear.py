@@ -1,33 +1,61 @@
 import pandas as pd
 import numpy as np
+ 
+def treino():
+	matriz = pd.read_csv('train.csv').values
 
-dados_treinamento = pd.read_csv('train.csv').values
+	x = matriz[:, 1:]	
+	x = x/255
 
-y = dados_treinamento[:, 0]
-X = dados_treinamento[:, 1:]
+	y = matriz[:, 0]
+	
+	theta = np.random.random(785)	
+	
+	xlinha = np.hstack((np.ones(42000).reshape(-1, 1), x))	
+	
+	erro = (xlinha.dot(theta) - y).T 	
+	derivada = 2 * erro.dot(xlinha)
+	
+	alfa = 3e-7
+	E = 1e-5
+	while(1):
+		erro = (xlinha.dot(theta) - y).T 
+	
+		derivada = alfa * (2 * erro.dot(xlinha))
 
-theta = np.random.random(785)
+		thetalinha = theta - derivada
+		print (np.linalg.norm(erro))	
+		print(np.linalg.norm(theta - thetalinha))
+	
+		if(np.linalg.norm(theta - thetalinha) < E):
+			break
+		theta = thetalinha
 
-xl = np.hstack((np.ones(42000).reshape(-1,1),X))
-diferenca = xl.dot(theta) - y
+	return theta
+	
+	
+def teste(theta):
 
-erro = np.linalg.norm(diferenca)
+	saida = open("saida.csv", 'w')
 
-derivada = (2.0*(diferenca.T)).dot(xl)
-print(derivada)
+	dadosTeste = pd.read_csv('test.csv').values	
+	dadosTeste = dadosTeste/255
+	
+	dadosTeste = np.hstack((np.ones(dadosTeste.shape[0]).reshape(-1, 1), dadosTeste))	
+	result = dadosTeste.dot(theta)
 
-alfa = 1e-5
-while(1):
-	derivada = (2.0*(diferenca.T)).dot(xl)
-	derivada_alfa = derivada*alfa
-	theta = theta - derivada_alfa
+	saida.write("ImageId,Label\n")
+	for i in range(result.shape[0]):
+		output = result[i]
+		if(output>9):
+			output = 9
+		elif (output<0):
+			output = 0
+		saida.write(str(i+1)+","+str(int(output))+"\n")
+	
 
-	diferenca = xl.dot(theta) - y
+def main():
+	theta = treino()
+	teste(theta)
 
-	erro = np.linalg.norm(diferenca)
-
-
-	print(erro)
-
-
-
+main()
